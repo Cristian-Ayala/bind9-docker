@@ -4,11 +4,17 @@ RUN apt-get -y update && apt-get install -y bind9 bind9utils bind9-doc dnsutils
 
 WORKDIR /etc/bind/
 
-RUN export master_ipv6=$(ip -6 addr show dev teredo scope global | sed -e's/^.*inet6 \([^ ]*\)\/.*$/\1/;t;d')
+ARG master_ipv6="master_ipv6"
 
-ENV host='riguas' master_ip='10.0.1.34' 
+ARG host='riguas' 
 
-ENV slave='tamales' slave_ip='172.168.0.1' slave_ipv6=$slave_dns
+ARG master_ip='10.0.1.34' 
+
+ARG slave_ipv6='slave_ipv6'
+
+ARG slave='tamales' 
+
+ARG slave_ip='172.168.0.1' 
 
 RUN echo '                                      \n\
 zone "'$host'.com" {                            \n\
@@ -18,7 +24,7 @@ zone "'$host'.com" {                            \n\
 };                                              \n\
 zone "'$slave'.com" {                           \n\
     type slave;                                 \n\
-    masters { '$slave_ip'; };                  \n\
+    masters { '$slave_ipv6'; };                   \n\
     file "db.'$slave'";                         \n\
 };                                              \n\
 ' > named.conf.local
@@ -40,7 +46,7 @@ options {                                       \n\
 RUN cat named.conf.options
 
 RUN echo '                                                              \n\
-$TTL    604800                                                         \n\
+$TTL    604800                                                          \n\
 @       IN      SOA     '$host'.'$host'.com. root.'$host'.com. (        \n\
                              30         ; Serial                        \n\
                          604800         ; Refresh                       \n\
