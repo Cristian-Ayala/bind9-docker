@@ -4,9 +4,11 @@ RUN apt-get -y update && apt-get install -y bind9 bind9utils bind9-doc dnsutils
 
 WORKDIR /etc/bind/
 
-ENV host='riguas' master_ip='10.0.1.34' master_ipv6='2001:0:53aa:64c:3836:ed54:41a9:9f7e'
+RUN export master_ipv6=$(ip -6 addr show dev teredo scope global | sed -e's/^.*inet6 \([^ ]*\)\/.*$/\1/;t;d')
 
-ENV slave='tamales' slave_ip='172.168.0.1' slave_ipv6='2001:0:53aa:64c:201a:2eb1:dc17:41ea'
+ENV host='riguas' master_ip='10.0.1.34' 
+
+ENV slave='tamales' slave_ip='172.168.0.1' slave_ipv6=$slave_dns
 
 RUN echo '                                      \n\
 zone "'$host'.com" {                            \n\
@@ -38,7 +40,7 @@ options {                                       \n\
 RUN cat named.conf.options
 
 RUN echo '                                                              \n\
-\$TTL    604800                                                         \n\
+$TTL    604800                                                         \n\
 @       IN      SOA     '$host'.'$host'.com. root.'$host'.com. (        \n\
                              30         ; Serial                        \n\
                          604800         ; Refresh                       \n\
@@ -61,7 +63,6 @@ www             IN      AAAA    '$master_ipv6'                          \n\
 
 RUN cat db.${host}
 
-RUN /etc/init.d/named reload
-
 EXPOSE 53 53/udp
 
+CMD /usr/sbin/named -c /etc/bind/named.conf -f
