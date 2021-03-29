@@ -4,17 +4,9 @@ RUN apt-get -y update && apt-get install -y bind9 bind9utils bind9-doc dnsutils
 
 WORKDIR /etc/bind/
 
-ARG master_ipv6="master_ipv6"
+ENV master_ipv6="master-ipv6" host='riguas' master_ip='master_ip' 
 
-ARG host='riguas' 
-
-ARG master_ip='10.0.1.34' 
-
-ARG slave_ipv6='slave_ipv6'
-
-ARG slave='tamales' 
-
-ARG slave_ip='172.168.0.1' 
+ENV slave_ipv6='slave-ipv6' slave='tamales' slave_ip='slave_ip' 
 
 RUN echo '                                      \n\
 zone "'$host'.com" {                            \n\
@@ -72,4 +64,9 @@ RUN cat db.${host}
 EXPOSE 53 53/udp
 
 #CMD /usr/sbin/named -c /etc/bind/named.conf -f
-ENTRYPOINT sed -i 's/172.168.0.1/'$slave_ip'/g' db.${host} && sed -i 's/slave_ipv6/'$slave_ipv6'/g' db.${host} && sed -i 's/10.0.1.34/'$master_ip'/g' db.${host} && sed -i 's/master_ipv6/'$master_ipv6'/g' db.${host}  && sed -i 's/slave_ipv6/'$slave_ipv6'/g' named.conf.local &&/usr/sbin/named -c /etc/bind/named.conf -f
+ENTRYPOINT sed -i 's/slave_ip/'$slave_ip'/g' db.${host} \
+        && sed -i 's/slave-ipv6/'$slave_ipv6'/g' db.${host} \
+        && sed -i 's/master_ip/'$master_ip'/g' db.${host} \
+        && sed -i 's/master-ipv6/'$master_ipv6'/g' db.${host}  \
+        && sed -i 's/slave-ipv6/'$slave_ipv6'/g' named.conf.local \
+        && /usr/sbin/named -c /etc/bind/named.conf -f
